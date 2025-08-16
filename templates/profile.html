@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>@{{ user_info.username }}</h2>
+<p class="text-muted">Joined: {{ user_info.created_at }} {% if user_info.is_admin %} • <span class="badge text-bg-info">Admin</span>{% endif %}</p>
+<h4 class="mt-4">Best Scores</h4>
+<table class="table table-dark table-striped">
+  <thead><tr><th>Game</th><th>Best Score</th></tr></thead>
+  <tbody>
+    {% for row in best_scores %}
+      <tr><td>{{ row.game_slug|capitalize }}</td><td>{{ row.best }}</td></tr>
+    {% else %}
+      <tr><td colspan="2" class="text-center text-muted">No scores yet</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

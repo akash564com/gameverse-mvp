@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breakout</title><style>body{margin:0;background:#111;color:#eee}canvas{display:block;margin:20px auto;background:#000;border:1px solid #333}</style></head>
+<body><canvas id="c" width="600" height="400"></canvas><div style="text-align:center">Score: <span id="s">0</span></div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');let px=260,py=380,pw=80,ph=10,bx=300,by=200,bvx=2,bvy=2,score=0;
+const rows=4,cols=8,br=20,bc=60,bw=50,bh=15,bricks=[];for(let r=0;r<rows;r++){for(let i=0;i<cols;i++){bricks.push({x:bc+i*(bw+10),y:br+r*(bh+8),hit:false})}}
+document.addEventListener('mousemove',e=>{const rect=c.getBoundingClientRect();px=Math.min(Math.max(0,e.clientX-rect.left-pw/2),c.width-pw)});
+function step(){x.clearRect(0,0,c.width,c.height);x.fillStyle='#0f0';x.fillRect(px,py,pw,ph);x.fillStyle='#fff';x.beginPath();x.arc(bx,by,6,0,Math.PI*2);x.fill();
+bx+=bvx;by+=bvy;if(bx<6||bx>c.width-6)bvx*=-1;if(by<6)bvy*=-1;if(by>c.height){submit();return}
+if(by+6>py&&bx>px&&bx<px+pw&&by<py){bvy*=-1;by=py-6}
+x.fillStyle='#09f';for(const b of bricks){if(!b.hit){x.fillRect(b.x,b.y,bw,bh);if(bx>b.x&&bx<b.x+bw&&by>b.y&&by<b.y+bh){b.hit=true;bvy*=-1;score+=5;document.getElementById('s').textContent=score}}}
+requestAnimationFrame(step)}requestAnimationFrame(step);
+async function submit(){try{await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:'breakout',score})});}catch(e){}}
+</script></body></html>

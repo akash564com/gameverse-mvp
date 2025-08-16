@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Login</h2>
+<form method="POST" novalidate class="mb-3">
+  <div class="mb-3">
+    <label>Email</label>
+    <input type="email" name="email" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Password</label>
+    <input type="password" name="password" class="form-control" required>
+  </div>
+  <button class="btn btn-primary">Login</button>
+  <a class="btn btn-link text-light" href="{{ url_for('reset_request') }}">Forgot password?</a>
+</form>
+
+<hr class="border-secondary">
+
+<h5>Or continue with Google</h5>
+<button id="googleBtn" class="btn btn-danger">Continue with Google</button>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+  const app = initializeApp(window.FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  document.getElementById('googleBtn').addEventListener('click', async () => {
+    try{
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      const resp = await fetch('/auth/firebase', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({idToken})
+      });
+      const data = await resp.json();
+      if(data.ok){ window.location = '/'; }
+      else { alert('Google sign-in failed: ' + (data.error||'unknown')); }
+    }catch(e){
+      alert('Google sign-in error: ' + e.message);
+    }
+  });
+</script>
+{% endblock %}

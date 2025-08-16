@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory</title><style>body{font-family:system-ui;background:#111;color:#eee;margin:0}.grid{display:grid;grid-template-columns:repeat(4,100px);gap:10px;justify-content:center;margin:20px}button.card{width:100px;height:100px;font-size:2rem}</style></head>
+<body><h1 style="text-align:center">Memory Match</h1><div class="grid" id="grid"></div><div style="text-align:center">Moves: <span id="moves">0</span></div>
+<script>
+const icons=['🍎','🍌','🍇','🍒','🍓','🍑','🍍','🥝'];let deck=[...icons,...icons].sort(()=>Math.random()-0.5),open=[],matched=0,moves=0;
+const grid=document.getElementById('grid');const mv=document.getElementById('moves');
+deck.forEach((ico,i)=>{const b=document.createElement('button');b.className='card';b.textContent='?';b.dataset.ico=ico;b.onclick=()=>flip(b);grid.appendChild(b)});
+function flip(b){if(open.includes(b)||b.textContent!== '?')return;b.textContent=b.dataset.ico;open.push(b);if(open.length===2){moves++;mv.textContent=moves;setTimeout(check,600)}}
+async function check(){const[a,b]=open;open=[];if(a.dataset.ico===b.dataset.ico){a.disabled=b.disabled=true;matched+=2;if(matched===deck.length){try{await fetch('/api/scores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:'memory',score:Math.max(1,100-moves)})});}catch(e){} alert('You win!')}}
+else {a.textContent=b.textContent='?'}}
+</script></body></html>

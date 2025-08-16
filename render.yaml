@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: gameverse-mvp
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    autoDeploy: true
+    # Uncomment this section to use a persistent disk (paid plans only).
+    # disks:
+    #   - name: gameverse-data
+    #     mountPath: /var/data
+    #     sizeGB: 1
+    # envVars:
+    #   - key: FLASK_SECRET_KEY
+    #     value: change-me
+    #   - key: DB_PATH
+    #     value: /var/data/users.db

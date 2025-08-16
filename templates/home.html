@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-3">Game Catalog</h1>
+<div class="row">
+  {% for g in games %}
+    <div class="col-md-4 mb-3">
+      <div class="card text-dark h-100">
+        <img src="{{ g.image }}" class="card-img-top" alt="{{ g.name }}">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ g.name }} {% if g.premium %}<span class="badge text-bg-warning">Premium</span>{% endif %}</h5>
+          <p class="card-text">{{ g.description }}</p>
+          <div class="mt-auto">
+            {% if current_user.is_authenticated %}
+              <a href="{{ url_for('play', slug=g.slug) }}" class="btn btn-primary">Play</a>
+            {% else %}
+              <a href="{{ url_for('login') }}" class="btn btn-secondary">Login to Play</a>
+            {% endif %}
+            <a href="{{ url_for('leaderboard', slug=g.slug) }}" class="btn btn-outline-dark ms-2">Leaderboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

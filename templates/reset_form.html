@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Set a new password</h2>
+<form method="POST" novalidate>
+  <div class="mb-3">
+    <label>New password</label>
+    <input type="password" name="password" class="form-control" minlength="6" required>
+  </div>
+  <button class="btn btn-success">Update password</button>
+</form>
+{% endblock %}
