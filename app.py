@@ -223,9 +223,13 @@ def games():
             elif name.lower().endswith((".html",)):
                 items.append({"name": name, "url": f"/static/games/{name}"})
     return render_template("games.html", items=items)
-@app.route("/games/<game>")
-def serve_game(game):
-    return render_template("play.html", game=game)
+@app.route("/games/<name>")
+def serve_game(name):
+    path = os.path.join("static", "games", name, "index.html")
+    if os.path.exists(path):
+        return app.send_static_file(f"games/{name}/index.html")
+    return "Game not found", 404
+
 
 @app.route("/static/games")
 def static_games_redirect():
