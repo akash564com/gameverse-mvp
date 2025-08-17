@@ -48,9 +48,8 @@
   </script>
 {% else %}
   <div class="ratio ratio-16x9 border rounded bg-black">
-    <iframe src="{{ url_for('static', filename='games/' + game + '/index.html') }}"
+    <iframe src="{{ url_for('static', filename='games/' ~ game.slug ~ '/index.html') }}"
         style="width:100%; height:90vh; border:none;"></iframe>
-
   </div>
 {% endif %}
 <p class="mt-3">
