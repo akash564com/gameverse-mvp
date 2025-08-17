@@ -232,6 +232,11 @@ def play_game(slug):
     abort(404)
 
 
+@app.route("/games/<slug>/leaderboard")
+def leaderboard(slug):
+    # For now, no scores are stored; pass an empty list or query your DB if implemented
+    rows = []
+    return render_template("leaderboard.html", game={"name": slug.title(), "slug": slug}, rows=rows)
 
 
 @app.route("/static/games")
