@@ -14,6 +14,37 @@ from forms import SignupForm, LoginForm
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(BASE_DIR, "gameverse.db")
 
+# --- Firebase Admin initialization ---
+try:
+    import firebase_admin
+    from firebase_admin import auth as fb_auth, credentials as fb_credentials
+    _FIREBASE_READY = False
+    if not firebase_admin._apps:
+        creds_json = os.environ.get("FIREBASE_CREDENTIALS")
+        if creds_json:
+            try:
+                _creds = fb_credentials.Certificate(json.loads(creds_json))
+                firebase_admin.initialize_app(_creds)
+                _FIREBASE_READY = True
+            except Exception as e:
+                logging.error("Failed to init Firebase with FIREBASE_CREDENTIALS JSON: %s", e)
+        else:
+            # Try application default credentials if mounted
+            gapp = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+            if gapp and os.path.exists(gapp):
+                try:
+                    _creds = fb_credentials.Certificate(gapp)
+                    firebase_admin.initialize_app(_creds)
+                    _FIREBASE_READY = True
+                except Exception as e:
+                    logging.error("Failed to init Firebase with GOOGLE_APPLICATION_CREDENTIALS: %s", e)
+    else:
+        _FIREBASE_READY = True
+except Exception as e:
+    logging.error("Firebase Admin not available: %s", e)
+    _FIREBASE_READY = False
+# --- end Firebase init ---
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev_" + os.urandom(16).hex())
 
@@ -162,3 +193,24 @@ def auth_firebase():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+
+
+@app.route("/games")
+def games():
+    # Lists available static games by folder/file name
+    import os
+    games_dir = os.path.join(app.root_path, "static", "games")
+    items = []
+    if os.path.isdir(games_dir):
+        for name in sorted(os.listdir(games_dir)):
+            p = os.path.join(games_dir, name)
+            if os.path.isdir(p):
+                items.append({"name": name, "url": f"/static/games/{name}/"})
+            elif name.lower().endswith((".html",)):
+                items.append({"name": name, "url": f"/static/games/{name}"})
+    return render_template("games.html", items=items)
+
+@app.route("/static/games")
+def static_games_redirect():
+    return redirect(url_for("games"))
