@@ -1,21 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Signup</h2>
-
-<form method="POST" action="/signup">
-    {{ form.hidden_tag() }}
-  <div class="mb-3">
-    <label>Email</label>
-    <input type="email" name="email" class="form-control" required>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="mb-3">Create Account</h4>
+        <form method="POST" action="{{ url_for('signup') }}">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control", placeholder="Gamer123") }}
+          </div>
+          <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="you@example.com") }}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="At least 6 characters") }}
+          </div>
+          {{ form.submit(class="btn btn-success w-100") }}
+        </form>
+      </div>
+    </div>
   </div>
-  <div class="mb-3">
-    <label>Username</label>
-    <input type="text" name="username" class="form-control" minlength="3" maxlength="32" required>
-  </div>
-  <div class="mb-3">
-    <label>Password</label>
-    <input type="password" name="password" class="form-control" minlength="6" required>
-  </div>
-  <button class="btn btn-success">Create Account</button>
-</form>
+</div>
 {% endblock %}

@@ -1,45 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Login</h2>
-<form method="POST" novalidate class="mb-3">
-  <div class="mb-3">
-    <label>Email</label>
-    <input type="email" name="email" class="form-control" required>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="mb-3">Login</h4>
+        <form method="POST" action="{{ url_for('login') }}">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="you@example.com") }}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="••••••••") }}
+          </div>
+        {{ form.submit(class="btn btn-primary w-100") }}
+        </form>
+        <hr class="my-4">
+        <button id="googleBtn" class="btn btn-outline-danger w-100">Continue with Google</button>
+        <p class="text-muted small mt-2">If Google popup is blocked, enable popups for this site.</p>
+      </div>
+    </div>
   </div>
-  <div class="mb-3">
-    <label>Password</label>
-    <input type="password" name="password" class="form-control" required>
-  </div>
-  <button class="btn btn-primary">Login</button>
-  <a class="btn btn-link text-light" href="{{ url_for('reset_request') }}">Forgot password?</a>
-</form>
+</div>
 
-<hr class="border-secondary">
-
-<h5>Or continue with Google</h5>
-<button id="googleBtn" class="btn btn-danger">Continue with Google</button>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-  const app = initializeApp(window.FIREBASE_CONFIG);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-  document.getElementById('googleBtn').addEventListener('click', async () => {
-    try{
-      const result = await signInWithPopup(auth, provider);
-      const idToken = await result.user.getIdToken();
-      const resp = await fetch('/auth/firebase', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({idToken})
-      });
-      const data = await resp.json();
-      if(data.ok){ window.location = '/'; }
-      else { alert('Google sign-in failed: ' + (data.error||'unknown')); }
-    }catch(e){
-      alert('Google sign-in error: ' + e.message);
-    }
-  });
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  const cfg = {{ firebase_config|tojson }};
+  if (cfg && cfg.apiKey) {
+    firebase.initializeApp(cfg);
+    const provider = new firebase.auth.GoogleAuthProvider();
+    document.getElementById('googleBtn').addEventListener('click', async () => {
+      try {
+        const res = await firebase.auth().signInWithPopup(provider);
+        const idToken = await res.user.getIdToken();
+        const r = await fetch("/auth/firebase", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ idToken })
+        });
+        if (r.ok) {
+          window.location.href = "/";
+        } else {
+          const data = await r.json().catch(() => ({}));
+          alert("Auth failed: " + (data.error || r.status));
+        }
+      } catch (e) {
+        alert("Google sign-in error: " + e.message);
+      }
+    });
+  } else {
+    const btn = document.getElementById('googleBtn');
+    if (btn) btn.disabled = true;
+  }
 </script>
 {% endblock %}
