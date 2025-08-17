@@ -1,12 +1,13 @@
 import os
 import sqlite3
+import firebase_admin
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import request, jsonify
 from firebase_admin import auth as firebase_auth
-
+from firebase_admin import credentials
 
 
 from forms import SignupForm, LoginForm
@@ -174,22 +175,34 @@ def logout():
 @csrf.exempt  # disable CSRF for API endpoint
 def auth_firebase():
     data = request.get_json(silent=True)
-    print("DEBUG /auth/firebase payload:", data)  # helpful in Render logs
+    logging.debug("DEBUG /auth/firebase payload: %s", data)
 
     if not data or "idToken" not in data:
-        return jsonify({"error": "Missing idToken"}), 400
+        return jsonify({"success": False, "error": "Missing idToken"}), 400
+
+    if not _FIREBASE_READY:
+        return jsonify({"success": False, "error": "Firebase not initialized"}), 500
 
     id_token = data["idToken"]
 
     try:
         decoded_token = firebase_auth.verify_id_token(id_token)
         uid = decoded_token["uid"]
-        # 🔐 At this point you can create/login a user in your DB session
-        session["user_id"] = uid
+
+        # Store useful info in session
+        session["user"] = {
+            "uid": uid,
+            "email": decoded_token.get("email"),
+            "name": decoded_token.get("name"),
+            "picture": decoded_token.get("picture")
+        }
+
         return jsonify({"success": True, "uid": uid}), 200
+
     except Exception as e:
-        print("Firebase verify failed:", e)
-        return jsonify({"error": "Invalid token"}), 401
+        logging.error("Firebase verify failed", exc_info=True)
+        return jsonify({"success": False, "error": str(e)}), 401
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
