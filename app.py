@@ -135,14 +135,15 @@ def logout():
     flash("Logged out", "info")
     return redirect(url_for("index"))
 
-@app.route("/auth/firebase", methods=["POST"])
 @csrf.exempt
+@app.route("/auth/firebase", methods=["POST"])
 def auth_firebase():
-    data = request.get_json()
-    id_token = data.get("idToken") if data else None
+    if not firebase_ready:
+        return jsonify({"error": "Firebase not configured"}), 400
+    data = request.get_json(silent=True) or {}
+    id_token = data.get("idToken")
     if not id_token:
         return jsonify({"error": "Missing idToken"}), 400
-
     try:
         from firebase_admin import auth
         decoded = auth.verify_id_token(id_token)
