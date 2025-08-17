@@ -210,6 +210,9 @@ def games():
             elif name.lower().endswith((".html",)):
                 items.append({"name": name, "url": f"/static/games/{name}"})
     return render_template("games.html", items=items)
+@app.route("/games/<game>")
+def serve_game(game):
+    return render_template("play.html", game=game)
 
 @app.route("/static/games")
 def static_games_redirect():
