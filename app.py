@@ -4,6 +4,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import request, jsonify
+from firebase_admin import auth as firebase_auth
+
+
 
 from forms import SignupForm, LoginForm
 
@@ -135,29 +139,26 @@ def logout():
     flash("Logged out", "info")
     return redirect(url_for("index"))
 
-@csrf.exempt
 @app.route("/auth/firebase", methods=["POST"])
+@csrf.exempt  # disable CSRF for API endpoint
 def auth_firebase():
-    if not firebase_ready:
-        return jsonify({"error": "Firebase not configured"}), 400
-    data = request.get_json(silent=True) or {}
-    id_token = data.get("idToken")
-    if not id_token:
+    data = request.get_json(silent=True)
+    print("DEBUG /auth/firebase payload:", data)  # helpful in Render logs
+
+    if not data or "idToken" not in data:
         return jsonify({"error": "Missing idToken"}), 400
+
+    id_token = data["idToken"]
+
     try:
-        from firebase_admin import auth
-        decoded = auth.verify_id_token(id_token)
-        email = decoded.get("email")
-        if not email:
-            return jsonify({"error":"No email in token"}), 400
-        user = find_user_by_email(email)
-        if not user:
-            name = decoded.get("name") or email.split("@")[0]
-            user = create_user(email=email, username=name, password_hash=None, provider="firebase")
-        login_user(user)
-        return jsonify({"ok": True})
+        decoded_token = firebase_auth.verify_id_token(id_token)
+        uid = decoded_token["uid"]
+        # 🔐 At this point you can create/login a user in your DB session
+        session["user_id"] = uid
+        return jsonify({"success": True, "uid": uid}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        print("Firebase verify failed:", e)
+        return jsonify({"error": "Invalid token"}), 401
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
