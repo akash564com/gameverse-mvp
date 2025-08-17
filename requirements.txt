@@ -3,3 +3,10 @@ flask-login==0.6.3
 flask-wtf==1.2.2
 firebase-admin==6.6.0
 gunicorn==23.0.0
+flask
+flask-wtf
+flask-login
+flask-sqlalchemy
+firebase-admin
+gunicorn
+email-validator
