@@ -211,24 +211,26 @@ if __name__ == "__main__":
 
 @app.route("/games")
 def games():
-    # Lists available static games by folder/file name
-    import os
     games_dir = os.path.join(app.root_path, "static", "games")
     items = []
     if os.path.isdir(games_dir):
         for name in sorted(os.listdir(games_dir)):
-            p = os.path.join(games_dir, name)
-            if os.path.isdir(p):
-                items.append({"name": name, "url": f"/static/games/{name}/"})
-            elif name.lower().endswith((".html",)):
-                items.append({"name": name, "url": f"/static/games/{name}"})
+            path = os.path.join(games_dir, name)
+            if os.path.isdir(path):
+                items.append({"name": name.title(), "slug": name})
+            elif name.lower().endswith(".html"):
+                slug = os.path.splitext(name)[0]
+                items.append({"name": slug.title(), "slug": slug})
     return render_template("games.html", items=items)
+
 @app.route("/games/<slug>")
-def serve_game(slug):
+def play_game(slug):
     path = os.path.join(app.static_folder, "games", slug, "index.html")
     if os.path.exists(path):
-        return app.send_static_file(f"games/{slug}/index.html")
-    return "Game not found", 404
+        # Render the play page (using the play.html template)
+        return render_template("play.html", game={"name": slug.title(), "slug": slug})
+    abort(404)
+
 
 
 
