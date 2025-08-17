@@ -25,6 +25,7 @@ class SignupForm(FlaskForm):
 # -------- Config --------
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "dev_secret_key")
 
 # Secure cookies
 app.config.update(
